@@ -60,9 +60,40 @@ Liang Jia Jiang <liangjia@buffalo.edu>
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+list Highest_Pri_List 	we will be creating a list that contains the highest priority
+threads to run them using round robin scheduling.
+
+list Waiting_List 		we will also creating a waiting list for threads that are waiting
+on locks or other threads
+
+int Highest_Pri 	We will use this variable to keep track of the highest priority
+when this number changes, we will clean out the Highest_Pri_List
+
+
+
 >> B2: Explain the data structure used to track priority donation.
 >> Use ASCII art to diagram a nested donation.  (Alternately, submit a
 >> .png file.)
+
+
+High Priorty		Medium Priorty		Low Priorty
+T1 -> (62)			T3 -> (32)		   	T4 -> (10)
+T2 -> (61)
+
+let say T1 is now locked because it is waiting for T3,
+T1 would donate it's priorty to T3 so that it become a high priorty
+
+High Priorty		Medium Priorty		Low Priorty
+T1 -> (62)							   	T4 -> (10)
+T2 -> (61)
+T3 -> (62)
+
+after T3 unlocks so that T1 can run again it returns it's proioty and 
+moves back down to a Medium Priorty thread
+
+High Priorty		Medium Priorty		Low Priorty
+T1 -> (62)			T3 -> (32)		   	T4 -> (10)
+T2 -> (61)
 
 ---- ALGORITHMS ----
 
