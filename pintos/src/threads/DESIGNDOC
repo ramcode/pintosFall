@@ -9,7 +9,7 @@
 >> Fill in the names and email addresses of your group members.
 
 Rohan Shah  <rmshah2@buffalo.edu>
-Venkta Ramesh Thetakli <vthetaka@buffalo.edu>
+Venkata Ramesh Thetakali <vthetaka@buffalo.edu>
 Liang Jia Jiang <liangjia@buffalo.edu>
 
 ---- PRELIMINARIES ----
@@ -112,6 +112,25 @@ our problem
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+Follwing variables added to struct thread in thread.h
+
+struct thread
+
+	int thread_nice;    //the thread's nice value
+
+	int thread_recent_cpu; //the most recent CPU time taken by the thread
+
+Added Nice value limits to a thread
+
+#define MIN_NICE -20   //Minimum nice value for a thread
+#define DEFAULT_NICE 0 //Default nice value for a thread
+#define MAX_NICE 20    //Maximum nice value for a thread
+
+variable avg_load added in thread.c to calculate threads run in the past minute
+
+static int avg_load     //average number of threads run in the CPU in the past 1 minute
+
+
 ---- ALGORITHMS ----
 
 >> C2: Suppose threads A, B, and C have nice values 0, 1, and 2.  Each
@@ -119,26 +138,52 @@ our problem
 >> scheduling decision and the priority and recent_cpu values for each
 >> thread after each given number of timer ticks:
 
-timer  recent_cpu    priority   thread
-ticks   A   B   C   A   B   C   to run
------  --  --  --  --  --  --   ------
- 0
- 4
- 8
-12
-16
-20
-24
-28
-32
-36
+For each thread,
+
+priority = PRI_MAX - (recent_cpu/4) - nice*2;
+
+recent_cpu = 2*avg_load/(2*avg_load+1)*recent_cpu+nice;
+
+avg_load = 59/60*avg_load + 1/60*threads_in_ready_queue;
+  
+timer               recent_cpu                     priority              thread to run             ready queue            REMARKS
+ticks         A        B        C             A       B       C  
+-----        ---      ---      ---           ---     ---     ---         ---------------         ---------------        ----------------
+ 0            0        0        0             63      61      59               A                      B C
+ 4            4	       0        0	      62      61      59               A                      B C
+ 8            8        0        0             61      61      59               B                      A C               Round Robin scheduling since A and B have same priority
+12            8        4        0             61      60      59               A                      B C
+16            12       4        0             60      60      59               B                      A C               Round Robin scheduling since A and B have same priority
+20            12       8        0             60      59      59               A                      C B              
+24            16       8        0             59      59      59               C                      B A               Round Robin scheduling since all have same priority
+28            16       8        4             59      59      58               B                      A C               Round Robin scheduling since A and C have same priority
+32            16       12       4             59      58      58               A                      C B               Round Robin scheduling since B and C have same priority
+36            20       12       4             58      58      58               C                      B A               Round Robin scheduling since all have same priority
 
 >> C3: Did any ambiguities in the scheduler specification make values
 >> in the table uncertain?  If so, what rule did you use to resolve
 >> them?  Does this match the behavior of your scheduler?
 
+yes, when there are multiple threads with same priority to run, ambiguity occurs on 
+which thread to run. I resolved this ambiguity following Round Robin scheduling where a 
+thread which is in the ready queue and has the same priority with one or more threads 
+in the ready queue, then the thread which has run least recently will be scheduled, 
+however i didn't pre-empt the thread when it has completed execution before it has reached it's
+time slice and allowed the thread to continue running till the time slice has expired.
+
+This design is in line with the priority scheduler implemented.  
+
 >> C4: How is the way you divided the cost of scheduling between code
 >> inside and outside interrupt context likely to affect performance?
+
+For all the threads, only nice value is computed outside the interrupt handler since
+changing nice value of a thread affects its priority. The entire cost of scheduling occurs
+inside the interrupt handler where at each timer_ticks all the threads priority have 
+to be updated (but in practicality only priority of thread which has run recently needs to be updated)
+where as for every second, recent_cpu, load_avg and priority needs to be calculated for every thread
+as mentioned above since recent_cpu changes every second. This involves a lot of overhead on scheduler
+when there are huge number of threads. Hence this type of priority scheduling affects performance
+when there are large number of processes/threads needs to be run by the scheduler. 
 
 ---- RATIONALE ----
 
