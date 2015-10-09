@@ -199,8 +199,8 @@ yes, when there are multiple threads with same priority to run, ambiguity occurs
 which thread to run. I resolved this ambiguity following Round Robin scheduling where a 
 thread which is in the ready queue and has the same priority with one or more threads 
 in the ready queue, then the thread which has run least recently will be scheduled, 
-however i didn't pre-empt the thread when it has completed execution before it has reached it's
-time slice and allowed the thread to continue running till the time slice has expired.
+however i didn't pre-empt the thread when it has completed execution before it has 
+reached it's time slice and allowed the thread to continue running till the time slice has expired.
 
 This design is in line with the priority scheduler implemented.  
 
@@ -223,12 +223,37 @@ when there are large number of processes/threads needs to be run by the schedule
 >> time to work on this part of the project, how might you choose to
 >> refine or improve your design?
 
+Advantages>>
+The design is very simple and easy to understand.
+Minimal changes with extra variables and functions
+Implemented fixed point math which can be reused, however implemented only necessary functions 
+
+Disadvantages>>
+The design doesn't take care of deadlock detection and prevention, since there can be a deadlock
+when multiple threads are competiting to enter critical region, it is very necessary to avoid deadlocks
+for optimal resource use and efficient execution.
+
+By implementing fixed point math, there can be be a case of overflows in floating point numbers and
+this should be taken care either by kernel or handled by user implementing pintos, however this seems
+not so important at this stage and this has been skipped for now.
+
+If i have extra time to work on, I would have tried to design advanced scheduling in such a way that the
+code handles deadlock detection and prevention. This can be handled by implementing algorithms for detecting 
+deadlocks like resource allocation graphs or Banker algorithm.
+
 >> C6: The assignment explains arithmetic for fixed-point math in
 >> detail, but it leaves it open to you to implement it.  Why did you
 >> decide to implement it the way you did?  If you created an
 >> abstraction layer for fixed-point math, that is, an abstract data
 >> type and/or a set of functions or macros to manipulate fixed-point
->> numbers, why did you do so?  If not, why not?
+>> numbers, why did you do so?  If not, why not? 
+
+Since pintos kernel doesn't support fixed point arithmetic, i implemented
+fixed point math to calculate recent_cpu and load_avg in a header file, since
+these values can be in float. I have used the standard function definitions defined in
+pintos documentation. In this way i abstracted the fixed point math in a header file, 
+so that these can be reused elsewhere when required. This approach separates abstraction
+from implementation.     
 
 			   SURVEY QUESTIONS
 			   ================
