@@ -30,27 +30,45 @@ Liang Jia Jiang <liangjia@buffalo.edu>
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+*** In the thread.h,
+
+we add a ticks_count integer variable which keeps count of the amount of time the thread has to sleep. 
+
+*** In the timer.c we added the 
+
 ---- ALGORITHMS ----
 
 >> A2: Briefly describe what happens in a call to timer_sleep(),
 >> including the effects of the timer interrupt handler.
 
+*** We disable our interrupt handle to to block the thread in the thread_block(). And it calls the timer_interrupt() after every tick. 
+
+
+
 >> A3: What steps are taken to minimize the amount of time spent in
 >> the timer interrupt handler?
+
+*** 
+The function in interrupt handler will check every thread and wake them up. 
 
 ---- SYNCHRONIZATION ----
 
 >> A4: How are race conditions avoided when multiple threads call
 >> timer_sleep() simultaneously?
 
+*** Interrupts are turned off after checking with the conditional statements and checks through the interrupt handler which corroborates synchronization.  
+
 >> A5: How are race conditions avoided when a timer interrupt occurs
 >> during a call to timer_sleep()?
+
+** when the timer is interrupted it checks for the ticks elapsed and based on it wakes/sleeps the threads. 
 
 ---- RATIONALE ----
 
 >> A6: Why did you choose this design?  In what ways is it superior to
 >> another design you considered?
 
+*** This is the simplest way to avoid busy waiting and the runtime is very fast and implementation is straight forward. 
 			 PRIORITY SCHEDULING
 			 ===================
 
