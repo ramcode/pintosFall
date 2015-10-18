@@ -84,6 +84,10 @@ struct thread
   {
     /* Owned by thread.c. */
     tid_t tid;                          /* Thread identifier. */
+    
+    /* Implementing an integer variable which will count the number of ticks to put to sleep. */ 
+    int64_t ticks_count; 
+    
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
