@@ -84,10 +84,6 @@ struct thread
   {
     /* Owned by thread.c. */
     tid_t tid;                          /* Thread identifier. */
-    
-    /* Implementing an integer variable which will count the number of ticks to put to sleep. */ 
-    int64_t ticks_count; 
-    
     enum thread_status status;          /* Thread state. */
     char name[16];                      /* Name (for debugging purposes). */
     uint8_t *stack;                     /* Saved stack pointer. */
@@ -96,6 +92,7 @@ struct thread
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
+	
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
@@ -141,5 +138,9 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+void testMaxPriority(void);
 
+bool thread_Insert_Less(struct list_elem *left, 
+						struct list_elem *right, void *aux UNUSED);
+						
 #endif /* threads/thread.h */

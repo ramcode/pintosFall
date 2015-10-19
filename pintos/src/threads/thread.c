@@ -171,7 +171,7 @@ thread_create (const char *name, int priority,
   struct switch_entry_frame *ef;
   struct switch_threads_frame *sf;
   tid_t tid;
-  tid_t tid;
+
   enum intr_level old_level;
 
   ASSERT (function != NULL);
@@ -246,7 +246,7 @@ thread_unblock (struct thread *t)
 
   old_level = intr_disable ();
   ASSERT (t->status == THREAD_BLOCKED);
-  list_push_back (&ready_list, &t->elem);
+  list_insert_ordered (&ready_list, &t->elem,thread_Insert_Less,NULL);
   t->status = THREAD_READY;
   intr_set_level (old_level);
 }
@@ -318,7 +318,7 @@ thread_yield (void)
   old_level = intr_disable ();
 
   if (cur != idle_thread) 
-    list_push_back (&ready_list, &cur->elem);
+      list_insert_ordered (&ready_list, &cur->elem,thread_Insert_Less,NULL);
   cur->status = THREAD_READY;
   schedule ();
   intr_set_level (old_level);
@@ -592,15 +592,22 @@ allocate_tid (void)
    Used by switch.S, which can't figure it out on its own. */
 uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
+
 void testMaxPriority(void){
-	struct list_elem *e;
-	
-	for (e = list_begin (&all_list); e != list_end (&all_list);
-       e = list_next (e))
-    {
-      struct thread *t = list_entry (e, struct thread, allelem);
-	  if(thread_current()->priority < t->priority){
+    struct thread *t = list_entry (list_begin(&ready_list), struct thread, allelem);
+//	printf("running\n");
+	if(thread_current()->priority < t->priority){
 		thread_yield();
-	  }
-    }
+	}
+}
+
+bool thread_Insert_Less(struct list_elem *left, 
+						struct list_elem *right, void *aux UNUSED){
+	
+	struct thread *t1 = list_entry(left, struct thread, elem);
+	struct thread *t2 = list_entry(right, struct thread, elem);
+	if(t1 -> priority > t2 -> priority){
+		return true;
+	}
+	return false;
 }
