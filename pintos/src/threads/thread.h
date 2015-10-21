@@ -89,7 +89,7 @@ struct thread
     uint8_t *stack;                     /* Saved stack pointer. */
     int priority;                       /* Priority. */
     struct list_elem allelem;           /* List element for all threads list. */
-
+	int count_ticks;
     /* Shared between thread.c and synch.c. */
     struct list_elem elem;              /* List element. */
 	
@@ -142,5 +142,6 @@ void testMaxPriority(void);
 
 bool thread_Insert_Less(struct list_elem *left, 
 						struct list_elem *right, void *aux UNUSED);
-						
+
+					
 #endif /* threads/thread.h */

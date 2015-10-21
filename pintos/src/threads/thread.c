@@ -209,7 +209,10 @@ thread_create (const char *name, int priority,
 
   /* Add to run queue. */
   thread_unblock (t);
-
+  //old_level = intr_disable ();
+  testMaxPriority();
+  //intr_set_level (old_level);
+  //testMaxPriority();
   return tid;
 }
 
@@ -594,9 +597,18 @@ uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 
 void testMaxPriority(void){
-    struct thread *t = list_entry (list_begin(&ready_list), struct thread, allelem);
+	//thread_ticks++;
+    if(list_empty(&ready_list)){
+		return;
+	}
+	struct thread *t = list_entry (list_begin(&ready_list), struct thread, elem);
 //	printf("running\n");
-	if(thread_current()->priority < t->priority){
+    struct thread *curr_thr = thread_current ();
+	//printf("curr_thr->priority: %d, t->priority: %d\n", 
+	//        curr_thr->priority, t->priority);
+			
+	if(curr_thr->priority < t->priority){
+		
 		thread_yield();
 	}
 }
