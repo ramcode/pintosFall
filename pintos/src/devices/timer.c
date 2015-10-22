@@ -191,7 +191,7 @@ timer_interrupt (struct intr_frame *args UNUSED)
 
 /* Cross-aalyzing every thread after elapsed time (in ticks) */
   
-  thread_foreach(threads_up, 0); /* Page 64 of Pintos Guide, [void thread_foreach (thread action func *action, void *aux)]
+  thread_foreach(threads_waking, 0); /* Page 64 of Pintos Guide, [void thread_foreach (thread action func *action, void *aux)]
  */  
   
   printf("checking each thread for waking them up");
@@ -272,7 +272,7 @@ real_time_delay (int64_t num, int32_t denom)
 }
 
 static void
-threads_up(struct thread *t, void *aux) {
+threads_waking(struct thread *t, void *aux) {
 
     if(t->status == THREAD_BLOCKED) { /* THREAD_BLOCKED page 62, pintos Guide: The thread is waiting for something, e.g. a lock to become available, an inter- rupt to be invoked. The thread won’t be scheduled again until it transitions to the THREAD_READY state with a call to thread_unblock().  */
         if(t->count_ticks > 0) {
