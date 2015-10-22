@@ -597,15 +597,14 @@ uint32_t thread_stack_ofs = offsetof (struct thread, stack);
 
 
 void testMaxPriority(void){
-	//thread_ticks++;
     if(list_empty(&ready_list)){
 		return;
 	}
 	struct thread *t = list_entry (list_begin(&ready_list), struct thread, elem);
-//	printf("running\n");
+
     struct thread *curr_thr = thread_current ();
-	//printf("curr_thr->priority: %d, t->priority: %d\n", 
-	//        curr_thr->priority, t->priority);
+	//printf("TMP\ncurr_thr->priority: %d, t->priority: %d\n", 
+	  //      curr_thr->priority, t->priority);
 			
 	if(curr_thr->priority < t->priority){
 		
@@ -618,6 +617,8 @@ bool thread_Insert_Less(struct list_elem *left,
 	
 	struct thread *t1 = list_entry(left, struct thread, elem);
 	struct thread *t2 = list_entry(right, struct thread, elem);
+	//printf("TIL\nt1->priority: %d, t2->priority: %d\n", 
+	  //      t1->priority, t2->priority);
 	if(t1 -> priority > t2 -> priority){
 		return true;
 	}
