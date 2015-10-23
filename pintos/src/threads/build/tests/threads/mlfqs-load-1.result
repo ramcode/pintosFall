@@ -1,0 +1,5 @@
+FAIL
+Kernel panic in run: PANIC at ../../tests/threads/tests.c:93 in fail(): test failed
+Call stack: 0xc0027589
+Translation of call stack:
+0xc0027589: intrff_stub (threads/intr-stubs.S:0)

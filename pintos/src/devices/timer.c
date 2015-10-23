@@ -30,6 +30,9 @@ static void busy_wait (int64_t loops);
 static void real_time_sleep (int64_t num, int32_t denom);
 static void real_time_delay (int64_t num, int32_t denom);
 
+static void
+           threads_up(struct thread *t, void *aux);
+
 /* Sets up the timer to interrupt TIMER_FREQ times per second,
    and registers the corresponding interrupt. */
 void
@@ -91,25 +94,28 @@ timer_sleep (int64_t ticks)
 {
     /* We shall do this by diabling the interrupts and enabling them once the job is done */ 
     
-    //int64_t start = timer_ticks (); 
-
+    //int64_t start = timer_ticks ();
+	if (ticks <= 0){
+		return;
+	}
+	
   ASSERT (intr_get_level () == INTR_ON);
     
     thread_current()-> count_ticks = ticks;
     
-   // printf("disabling interrupt to block the threads"\n");
+//    printf("disabling interrupt to block the threads"\n");
 
 //diable interrupts 
     enum intr_level old_level = intr_disable(); /* Page no. 71 Pintos Guide */
            
-   // printf("Interrupt Disabled"\n");
+  //  printf("Interrupt Disabled"\n");
            
     thread_block();
     
     intr_set_level (old_level); /* Sets the old_interrupt level according to the pintos guide pg. 71 */ 
            
          /*  while (timer_elapsed (start) < ticks) 
-    thread_yield ();  BUSY WAITING*/ 
+    thread_yield (); */ 
 }
 
 /* Sleeps for approximately MS milliseconds.  Interrupts must be
@@ -191,10 +197,10 @@ timer_interrupt (struct intr_frame *args UNUSED)
 
 /* Cross-aalyzing every thread after elapsed time (in ticks) */
   
-  thread_foreach(threads_waking, 0); /* Page 64 of Pintos Guide, [void thread_foreach (thread action func *action, void *aux)]
+  thread_foreach(threads_up, 0); /* Page 64 of Pintos Guide, [void thread_foreach (thread action func *action, void *aux)]
  */  
   
-  printf("checking each thread for waking them up");
+  //printf("checking each thread for waking them up");
         
 
 }
@@ -272,14 +278,14 @@ real_time_delay (int64_t num, int32_t denom)
 }
 
 static void
-threads_waking(struct thread *t, void *aux) {
-
+    threads_up(struct thread *t, void *aux) {
     if(t->status == THREAD_BLOCKED) { /* THREAD_BLOCKED page 62, pintos Guide: The thread is waiting for something, e.g. a lock to become available, an inter- rupt to be invoked. The thread won’t be scheduled again until it transitions to the THREAD_READY state with a call to thread_unblock().  */
-        if(t->count_ticks > 0) {
-            t->count_ticks--;
-            if(t->count_ticks == 0) {
-                thread_unblock(t); /*page 62 Pintos Guide */
-            }
-        }
+               
+    if(t->count_ticks > 0) {
+       t->count_ticks--;
+      if(t->count_ticks == 0) {
+        thread_unblock(t); /*page 62 Pintos Guide */
+       }
+    }
     }
 }
