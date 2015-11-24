@@ -8,7 +8,7 @@
 
 >> Fill in the names and email addresses of your group members.
 
-FirstName LastName <email@domain.example>
+Liang Jia Jiang <liangjia@buffalo.edu>
 FirstName LastName <email@domain.example>
 FirstName LastName <email@domain.example>
 
@@ -40,9 +40,21 @@ FirstName LastName <email@domain.example>
 
 >> A3: Why does Pintos implement strtok_r() but not strtok()?
 
+strtok_r uses an extra argument that allows us to use saveptr, which is pointer that allow us to reuse strings. 
+We can also parse different strings concurrently using strtok_r giving different saveptr arguments.
+
 >> A4: In Pintos, the kernel separates commands into a executable name
 >> and arguments.  In Unix-like systems, the shell does this
 >> separation.  Identify at least two advantages of the Unix approach.
+
+One of the advantages of of the shell is from a security aspect,
+since commands can come in any range, good or bad, using a shell to separate commands
+allow the shell to help looking for unsafe command line before they reach the kernel.
+This also helps reduce the work of the kernel.
+
+In Unix-like systems we are allow to do alot of more complicated operations, such as piping and redirecting,
+while in the Pintos' approch we have to add alot more code in the kernel to achieve those same operations.
+
 
 			     SYSTEM CALLS
 			     ============
@@ -110,6 +122,8 @@ FirstName LastName <email@domain.example>
 
 >> B11: The default tid_t to pid_t mapping is the identity mapping.
 >> If you changed it, what advantages are there to your approach?
+
+we did not change the defualt mapping of tid_t to pid_t
 
 			   SURVEY QUESTIONS
 			   ================
