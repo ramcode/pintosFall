@@ -26,13 +26,13 @@ FirstName LastName <email@domain.example>
 
 ---- DATA STRUCTURES ----
 
->> A1: Copy here the declaration of each new or changed `struct' or
+(need answer)>> A1: Copy here the declaration of each new or changed `struct' or
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
 ---- ALGORITHMS ----
 
->> A2: Briefly describe how you implemented argument parsing.  How do
+(need answer)>> A2: Briefly describe how you implemented argument parsing.  How do
 >> you arrange for the elements of argv[] to be in the right order?
 >> How do you avoid overflowing the stack page?
 
@@ -61,7 +61,7 @@ while in the Pintos' approch we have to add alot more code in the kernel to achi
 
 ---- DATA STRUCTURES ----
 
->> B1: Copy here the declaration of each new or changed `struct' or
+(need answer)>> B1: Copy here the declaration of each new or changed `struct' or
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
@@ -69,10 +69,18 @@ while in the Pintos' approch we have to add alot more code in the kernel to achi
 >> Are file descriptors unique within the entire OS or just within a
 >> single process?
 
+In our implementation file descriptors are unique within the single processes.
+When a process opens a file a file descriptor is created and added to the tread stack.
+
+
 ---- ALGORITHMS ----
 
 >> B3: Describe your code for reading and writing user data from the
 >> kernel.
+
+We first validate all pointers and accessers before we do a direct access,
+this is to make sure that all pointers are valid before we do any access to 
+memory which can cause memory errors.
 
 >> B4: Suppose a system call causes a full page (4,096 bytes) of data
 >> to be copied from user space into the kernel.  What is the least
@@ -81,10 +89,18 @@ while in the Pintos' approch we have to add alot more code in the kernel to achi
 >> for a system call that only copies 2 bytes of data?  Is there room
 >> for improvement in these numbers, and how much?
 
->> B5: Briefly describe your implementation of the "wait" system call
+When a full page call is requested, the lest number of time it could be call would be 1,
+if pagedir_get_page() is not validated, the data will be stored on a single page, then 
+memcpy would pass the pointer returned by pagedir_get_page()
+
+the greatest number of times it could be call is 4096, the data would be distributed
+in segments across all 4096 pages, then memcpy would pass the pointer returned by pagedir_get_page()
+4096 times.
+
+(need answer)>> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
 
->> B6: Any access to user program memory at a user-specified address
+(need answer)>> B6: Any access to user program memory at a user-specified address
 >> can fail due to a bad pointer value.  Such accesses must cause the
 >> process to be terminated.  System calls are fraught with such
 >> accesses, e.g. a "write" system call requires reading the system
@@ -100,7 +116,7 @@ while in the Pintos' approch we have to add alot more code in the kernel to achi
 
 ---- SYNCHRONIZATION ----
 
->> B7: The "exec" system call returns -1 if loading the new executable
+(need answer)>> B7: The "exec" system call returns -1 if loading the new executable
 >> fails, so it cannot return before the new executable has completed
 >> loading.  How does your code ensure this?  How is the load
 >> success/failure status passed back to the thread that calls "exec"?
@@ -112,13 +128,21 @@ while in the Pintos' approch we have to add alot more code in the kernel to achi
 >> terminates without waiting, before C exits?  After C exits?  Are
 >> there any special cases?
 
+The parent process will be holding a semaphore until the child process exits, after the
+child processes exit, the wait struct will still exist. However since the parent process
+was holding the semaphore it is now set to have a value of 1 so the parent can now call 
+sys_wait and it'll be returned. The parent will also be accountable for taking call of
+all resources therefore it can be deleted one the parent is dead.
+
+
 ---- RATIONALE ----
 
->> B9: Why did you choose to implement access to user memory from the
+(need answer)>> B9: Why did you choose to implement access to user memory from the
 >> kernel in the way that you did?
 
->> B10: What advantages or disadvantages can you see to your design
+(need answer)>> B10: What advantages or disadvantages can you see to your design
 >> for file descriptors?
+
 
 >> B11: The default tid_t to pid_t mapping is the identity mapping.
 >> If you changed it, what advantages are there to your approach?
