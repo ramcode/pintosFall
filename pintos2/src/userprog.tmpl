@@ -9,7 +9,7 @@
 >> Fill in the names and email addresses of your group members.
 
 Liang Jia Jiang <liangjia@buffalo.edu>
-FirstName LastName <email@domain.example>
+Venkata Ramesh Thetakali <vthetaka@buffalo.edu>
 FirstName LastName <email@domain.example>
 
 ---- PRELIMINARIES ----
@@ -26,15 +26,83 @@ FirstName LastName <email@domain.example>
 
 ---- DATA STRUCTURES ----
 
-(need answer)>> A1: Copy here the declaration of each new or changed `struct' or
+>> A1: Copy here the declaration of each new or changed `struct' or
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
 
+We did not specify any new struct variables for argument passing. However, we added some variables in process_excecute() of process.c. These are shown below
+  	char *f_name;  //pointer for file name of user program
+ 	struct thread *t //pointer for current thread running the program
+
+
 ---- ALGORITHMS ----
 
-(need answer)>> A2: Briefly describe how you implemented argument parsing.  How do
+A2: Briefly describe how you implemented argument parsing.  How do
 >> you arrange for the elements of argv[] to be in the right order?
 >> How do you avoid overflowing the stack page?
+
+A user program has arguments in the form
+<program name> <arg1> <arg2> … <argn>
+
+The first argument is the filename to load user program and the remaining args are program arguments separated by delimiter “ “.A function strtok_r() from string.c is used to tokenize the string into arguments. The tokenized arguments are placed in vector using to the code below
+
+/* Tokenize the arguments and add them to the argument vector */
+
+
+  argc = 0;
+  argv_off = malloc (32 * sizeof (int)); //max args can be 32
+  if (!argv_off)
+    goto exit;
+  file_name_len = strlen (file_name);
+  argv_off[0] = 0;
+  for (
+       token = strtok_r (file_name, " ", &save_ptr);
+       token != NULL;
+       token = strtok_r (NULL, " ", &save_ptr)
+       )
+        {
+          while (*(save_ptr) == ' ')
+            ++save_ptr;
+          argv_off[++argc] = save_ptr - file_name;
+        }
+
+Once, the args list is generated, these args can be pushed into the stack. The code is given below:
+
+//setting up arguments stack
+
+filesys_open (file_name);          //open file with file_name
+      file_deny_write (t->self);	//block file access to other threads
+      if_.esp -= file_name_len + 1;
+      start = if_.esp;
+      memcpy (if_.esp, file_name, file_name_len + 1);
+      if_.esp -= 4 - (file_name_len + 1) % 4; /* alignment */
+      if_.esp -= 4;
+      *(int *)(if_.esp) = 0; /* argv[argc] == 0 */
+      /* pushing args into the stack */
+      for (i = argc - 1; i >= 0; --i)
+        {
+          if_.esp -= 4;
+          *(void **)(if_.esp) = start + argv_off[i]; /* argv[x] */
+        }
+
+	// initialize the stack address
+      if_.esp -= 4;
+      *(char **)(if_.esp) = (if_.esp + 4); /* argv */
+      if_.esp -= 4;
+      *(int *)(if_.esp) = argc;
+      if_.esp -= 4;
+      *(int *)(if_.esp) = 0; //fake return address
+
+In the first part arguments are pushed into the stack from right to left, so that top of stack contains program name and the second last element in the stack is the no. of args and a fake return address is added to the end of the stack.
+
+To avoid overflowing the stack,a restriction is kept on the total space of the arguments to be less than one page.
+
+Finally, page_fault() in /userprog/exception.c is extended to handle page fault exceptions, if the user tries to access a null pointer, a pointer to unmapped virtual memory, or a pointer to kernel virtual address space (above PHYS_BASE). The code is shown below.
+
+t = thread_current ();
+  	if (not_present || (is_kernel_vaddr (fault_addr) && user))
+    sys_exit (-1);
+
 
 ---- RATIONALE ----
 
@@ -61,9 +129,25 @@ while in the Pintos' approch we have to add alot more code in the kernel to achi
 
 ---- DATA STRUCTURES ----
 
-(need answer)>> B1: Copy here the declaration of each new or changed `struct' or
+>> B1: Copy here the declaration of each new or changed `struct' or
 >> `struct' member, global or static variable, `typedef', or
 >> enumeration.  Identify the purpose of each in 25 words or less.
+
+In syscall.c
+
+typedef int pid_t;    //process Id for current thread
+struct fd_elem        //struct for file descriptor
+  {
+    int fd;
+    struct file *file;
+    struct list_elem elem;
+    struct list_elem thread_elem;
+  };
+
+static struct lock file_lock;   //lock variable for file lock
+
+static struct list file_list;  //list variable to track open files
+
 
 >> B2: Describe how file descriptors are associated with open files.
 >> Are file descriptors unique within the entire OS or just within a
@@ -97,10 +181,40 @@ the greatest number of times it could be call is 4096, the data would be distrib
 in segments across all 4096 pages, then memcpy would pass the pointer returned by pagedir_get_page()
 4096 times.
 
-(need answer)>> B5: Briefly describe your implementation of the "wait" system call
+>> B5: Briefly describe your implementation of the "wait" system call
 >> and how it interacts with process termination.
 
-(need answer)>> B6: Any access to user program memory at a user-specified address
+Our system_call wait calls process_wait() to find the thread by tid_t passed into process_wait()and then checks the thread status if it’s alive or not and if the check fails, -1 is returned informing that the thread was killed due to an exception. Otherwise, a semaphore is used to 
+block the thread and set the return_code. Next we unblock the thread and set the thread 'waiting' and return its return_code.
+
+int
+process_wait (tid_t child_tid) 
+{
+  struct thread *t;
+  int ret;
+  ret = -1;
+  t = get_thread_by_tid (child_tid);
+  if (!t || t->status == THREAD_DYING || t->ret_status == RET_STATUS_INVALID)
+    goto done;
+  if (t->ret_status != RET_STATUS_DEFAULT && t->ret_status != RET_STATUS_INVALID)
+    {
+      ret = t->ret_status;
+      goto done;
+    }
+
+  sema_down (&t->wait);
+  ret = t->ret_status;
+  printf ("%s: exit(%d)\n", t->name, t->ret_status);
+  while (t->status == THREAD_BLOCKED)
+    thread_unblock (t);
+  
+done:
+  t->ret_status = RET_STATUS_INVALID;
+  return ret;
+}
+
+
+>> B6: Any access to user program memory at a user-specified address
 >> can fail due to a bad pointer value.  Such accesses must cause the
 >> process to be terminated.  System calls are fraught with such
 >> accesses, e.g. a "write" system call requires reading the system
@@ -116,10 +230,15 @@ in segments across all 4096 pages, then memcpy would pass the pointer returned b
 
 ---- SYNCHRONIZATION ----
 
-(need answer)>> B7: The "exec" system call returns -1 if loading the new executable
+>> B7: The "exec" system call returns -1 if loading the new executable
 >> fails, so it cannot return before the new executable has completed
 >> loading.  How does your code ensure this?  How is the load
 >> success/failure status passed back to the thread that calls "exec"?
+
+Our "exec" system_call (syscall_exec) calls process_execute() which creates
+a new thread to run the executable. Once the thread is completed, we wait on 
+the thread to complete by checking the thread status, and calling process_wait
+if the return_code is invalid until the thread completes.
 
 >> B8: Consider parent process P with child process C.  How do you
 >> ensure proper synchronization and avoid race conditions when P
@@ -137,10 +256,10 @@ all resources therefore it can be deleted one the parent is dead.
 
 ---- RATIONALE ----
 
-(need answer)>> B9: Why did you choose to implement access to user memory from the
+>> B9: Why did you choose to implement access to user memory from the
 >> kernel in the way that you did?
 
-(need answer)>> B10: What advantages or disadvantages can you see to your design
+>> B10: What advantages or disadvantages can you see to your design
 >> for file descriptors?
 
 
