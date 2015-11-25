@@ -228,6 +228,21 @@ done:
 >> paragraphs, describe the strategy or strategies you adopted for
 >> managing these issues.  Give an example.
 
+We try to check each address is a valid address in user memory before reading any data,
+so that an invalid reference to the system call number, the arguments, or any buffer data
+associated with the arguments results in a fault which is caught in exception.c and thrown
+to the user.Also, we immediately call sys_exit, which handles freeing the stack, cleans up all children, and closes any open files.
+
+This code is written in page_fault() method of exception.c to handle all page faults and invalid references
+
+t = thread_current ();
+  	if (not_present || (is_kernel_vaddr (fault_addr) && user))
+    sys_exit (-1);
+
+Example: Suppose the user calls a system call for write, syscall 9, and passes an invalid address to the buffer. When parsing the arguments, a page fault will occur when we attempt to read the location of the buffer. Therefore, sys_exit will be called and all resource cleanup will be handled appropiately.
+
+Example: Suppose the user calls an invalid system call, syscall 537. After reading the system call number successfully, the syscall handler will call sys_exit. Then, all resource cleanup will be handled appropiately.
+
 ---- SYNCHRONIZATION ----
 
 >> B7: The "exec" system call returns -1 if loading the new executable
