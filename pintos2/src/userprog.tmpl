@@ -259,8 +259,13 @@ all resources therefore it can be deleted one the parent is dead.
 >> B9: Why did you choose to implement access to user memory from the
 >> kernel in the way that you did?
 
+The Access to memory from he kernel guarantees faster response time, versus the user level access. It also provides a gateway for kernel system calls to be ignited quicker. 
+
+
 >> B10: What advantages or disadvantages can you see to your design
 >> for file descriptors?
+
+Our design for file descriptors is very lean however it has CPU and memory overhead attached to it. To detect a file type, the memory reads the descriptor piece of information from the packet head and determines the compatibility interactively every single string, this has a time overhead attached to it, however it also guarantees accurate results in every iteration. 
 
 
 >> B11: The default tid_t to pid_t mapping is the identity mapping.
